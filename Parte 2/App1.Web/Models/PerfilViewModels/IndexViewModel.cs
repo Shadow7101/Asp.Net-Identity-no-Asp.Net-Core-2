@@ -17,7 +17,7 @@ namespace App1.Web.Models.PerfilViewModels
         public string Phonenumber { get; set; }
 
 
-        public string StatuMessage { get; set; }
+        public string StatusMessage { get; set; }
 
     }
 }

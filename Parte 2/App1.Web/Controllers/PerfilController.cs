@@ -1,17 +1,17 @@
 using System;
-using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using App1.Web.Models;
-using Microsoft.AspNetCore.Authorization;
 using App1.Web.Models.PerfilViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace App1.Web.Controllers
 {
     public class PerfilController : Controller
     {
-
         private readonly UserManager<ApplicationUser> userManager;
+
         private readonly SignInManager<ApplicationUser> signInManager;
 
         public PerfilController(UserManager<ApplicationUser> _userManager, SignInManager<ApplicationUser> _signInManager)
@@ -22,7 +22,6 @@ namespace App1.Web.Controllers
 
         [TempData]
         public string StatusMessage { get; set; }
-
 
         [HttpGet]
         [Authorize]
@@ -42,11 +41,10 @@ namespace App1.Web.Controllers
                 Email = user.Email,
                 Phonenumber = user.PhoneNumber,
                 IsEmailConfirmed = user.EmailConfirmed,
-                StatuMessage = StatusMessage
+                StatusMessage = StatusMessage
             };
             return View(model);
         }
-
 
         [HttpPost]
         [Authorize]
@@ -78,6 +76,63 @@ namespace App1.Web.Controllers
             StatusMessage = "Seu perfil foi atualizado!";
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword()
+        {
+            var user = await userManager.GetUserAsync(User);
+
+
+            if (user == null)
+            {
+                string UserId = userManager.GetUserId(User);
+                throw new Exception($"Não foi possivel identifica o usuario com o ID '{UserId}'");
+            }
+
+            var model = new ChangePasswordViewModel { StatusMessage = StatusMessage };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            if(model.OldPassword==model.NewPassword)
+            {
+                ModelState.AddModelError(string.Empty, "A nova senha não pode ser igual a antiga!");
+                return View(model);
+            }
+
+            var user = await userManager.GetUserAsync(User);
+            string UserId = userManager.GetUserId(User);
+
+            if (user == null)
+                throw new Exception($"Não foi possivel identifica o usuario com o ID '{UserId}'");
+
+
+            var changePasswordResult = await userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+
+            if(!changePasswordResult.Succeeded)
+            {
+                foreach (var error in changePasswordResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(model);
+            }
+
+
+            await signInManager.SignInAsync(user, false);
+
+            StatusMessage = "Sua senha foi alterada com exito!";
+
+            return View(model);
         }
     }
 }

@@ -6,8 +6,7 @@
 
 <h4>@ViewData["Title"]</h4>
 
-@Html.Partial("_StatusMessage", Model.StatuMessage)
-
+@await Html.PartialAsync("_StatusMessage", Model.StatusMessage)
 
 <div class="row">
     <div class="col-md-4">
@@ -29,11 +28,14 @@
                 <label asp-for="Phonenumber"></label>
                 <input asp-for="Phonenumber" class="form-control" />
                 <span asp-validation-for="Phonenumber" class="text-danger"></span>
-            </div>            
+            </div>
 
             <button type="Submit" class="btn btn-primary">Salvar</button>
 
         </form>
+    </div>
+    <div class="col-md-6">
+        <a asp-area="" asp-controller="Perfil" asp-action="ChangePassword" title="Change Password">Alterar senha</a>
     </div>
 </div>
 
